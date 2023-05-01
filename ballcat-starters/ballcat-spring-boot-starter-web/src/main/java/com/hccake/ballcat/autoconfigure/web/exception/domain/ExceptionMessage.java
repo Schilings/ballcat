@@ -65,8 +65,12 @@ public class ExceptionMessage {
 	private String ip;
 
 	/**
+	 * 请求地址
+	 */
+	private String requestUri;
+
+	/**
 	 * 数量自增
-	 * @author lingting 2020-09-03 20:31
 	 */
 	public ExceptionMessage increment() {
 		number++;
@@ -76,7 +80,7 @@ public class ExceptionMessage {
 	@Override
 	public String toString() {
 		return "服务名称：" + applicationName + "\nip：" + ip + "\nhostname：" + hostname + "\n机器地址：" + mac + "\n触发时间：" + time
-				+ "\n线程id：" + threadId + "\n数量：" + number + "\n堆栈：" + stack;
+				+ "\n请求地址：" + requestUri + "\n线程id：" + threadId + "\n数量：" + number + "\n堆栈：" + stack;
 	}
 
 }

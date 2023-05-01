@@ -3,15 +3,12 @@ package com.hccake.ballcat.common.log.util;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -42,16 +39,6 @@ public class LogUtils {
 			}
 		}
 		return body;
-	}
-
-	/**
-	 * 获取响应体
-	 * @param response 响应信息
-	 * @return responseBody 响应体
-	 */
-	public String getResponseBody(HttpServletResponse response) {
-		HttpServletRequest request = getHttpServletRequest();
-		return getResponseBody(request, response);
 	}
 
 	/**
@@ -86,15 +73,6 @@ public class LogUtils {
 		// 获取Content-Type
 		String contentType = request.getContentType();
 		return (contentType != null) && (contentType.toLowerCase().startsWith("multipart/"));
-	}
-
-	/**
-	 * 获取当前请求的request
-	 * @return HttpServletRequest
-	 */
-	public HttpServletRequest getHttpServletRequest() {
-		return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
-				.getRequest();
 	}
 
 }

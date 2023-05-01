@@ -1,23 +1,21 @@
 package com.hccake.starter.pay.virtual;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import live.lingting.virtual.currency.bitcoin.BitcoinServiceImpl;
+import live.lingting.virtual.currency.core.Contract;
+import live.lingting.virtual.currency.etherscan.EtherscanServiceImpl;
+import live.lingting.virtual.currency.tronscan.TronscanServiceImpl;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import live.lingting.virtual.currency.bitcoin.BitcoinServiceImpl;
-import live.lingting.virtual.currency.core.Contract;
-import live.lingting.virtual.currency.etherscan.EtherscanServiceImpl;
-import live.lingting.virtual.currency.tronscan.TronscanServiceImpl;
 
 /**
  * @author lingting 2021/1/5 9:52
  */
-@Slf4j
-@RequiredArgsConstructor
+@AutoConfiguration
 @ConditionalOnClass(Contract.class)
 @EnableConfigurationProperties({ BitcoinProperties.class, EtherscanProperties.class, TronscanProperties.class })
 public class VirtualPayAutoConfiguration {
@@ -28,7 +26,6 @@ public class VirtualPayAutoConfiguration {
 
 	/**
 	 * infura 配置类
-	 * @author lingting 2021-01-05 10:40
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -39,17 +36,16 @@ public class VirtualPayAutoConfiguration {
 			EtherscanProperties properties) {
 		EtherscanProperties.Infura infura = properties.getInfura();
 		return new live.lingting.virtual.currency.etherscan.properties.EtherscanProperties()
-				// 节点
-				.setEndpoints(properties.getEndpoints())
-				// project id
-				.setProjectId(infura.getProjectId())
-				// project secret
-				.setProjectSecret(infura.getProjectSecret());
+			// 节点
+			.setEndpoints(properties.getEndpoints())
+			// project id
+			.setProjectId(infura.getProjectId())
+			// project secret
+			.setProjectSecret(infura.getProjectSecret());
 	}
 
 	/**
 	 * infura 平台实现类
-	 * @author lingting 2021-01-05 10:35
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -66,7 +62,6 @@ public class VirtualPayAutoConfiguration {
 
 	/**
 	 * tronscan 配置类
-	 * @author lingting 2021-01-05 10:40
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -76,13 +71,12 @@ public class VirtualPayAutoConfiguration {
 	public live.lingting.virtual.currency.tronscan.properties.TronscanProperties tronscanProperties(
 			TronscanProperties properties) {
 		return new live.lingting.virtual.currency.tronscan.properties.TronscanProperties()
-				// 节点
-				.setEndpoints(properties.getEndpoints());
+			// 节点
+			.setEndpoints(properties.getEndpoints());
 	}
 
 	/**
 	 * tronscan 平台实现类
-	 * @author lingting 2021-01-05 10:35
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -98,7 +92,6 @@ public class VirtualPayAutoConfiguration {
 
 	/**
 	 * bitcoin 配置类
-	 * @author lingting 2021-01-05 10:40
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -108,13 +101,12 @@ public class VirtualPayAutoConfiguration {
 	public live.lingting.virtual.currency.bitcoin.properties.BitcoinProperties bitcoinProperties(
 			BitcoinProperties properties) {
 		return new live.lingting.virtual.currency.bitcoin.properties.BitcoinProperties()
-				// 比特节点
-				.setEndpoints(properties.getEndpoints());
+			// 比特节点
+			.setEndpoints(properties.getEndpoints());
 	}
 
 	/**
 	 * bitcoin 平台实现类
-	 * @author lingting 2021-01-05 10:35
 	 */
 	@Bean
 	@ConditionalOnMissingBean

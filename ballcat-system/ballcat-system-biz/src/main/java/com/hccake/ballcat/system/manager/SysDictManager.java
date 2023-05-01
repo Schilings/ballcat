@@ -1,6 +1,6 @@
 package com.hccake.ballcat.system.manager;
 
-import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import com.hccake.ballcat.common.core.exception.BusinessException;
@@ -9,6 +9,7 @@ import com.hccake.ballcat.common.model.domain.PageResult;
 import com.hccake.ballcat.common.model.result.BaseResultCode;
 import com.hccake.ballcat.system.converter.SysDictItemConverter;
 import com.hccake.ballcat.system.event.DictChangeEvent;
+import com.hccake.ballcat.system.model.dto.SysDictItemDTO;
 import com.hccake.ballcat.system.model.entity.SysDict;
 import com.hccake.ballcat.system.model.entity.SysDictItem;
 import com.hccake.ballcat.system.model.qo.SysDictQO;
@@ -139,17 +140,18 @@ public class SysDictManager {
 
 	/**
 	 * 新增字典项
-	 * @param sysDictItem 字典项
+	 * @param sysDictItemDTO 字典项
 	 * @return 执行是否成功
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public boolean saveDictItem(SysDictItem sysDictItem) {
+	public boolean saveDictItem(SysDictItemDTO sysDictItemDTO) {
 		// 更新字典项Hash值
-		String dictCode = sysDictItem.getDictCode();
+		String dictCode = sysDictItemDTO.getDictCode();
 		if (!sysDictService.updateHashCode(dictCode)) {
 			return false;
 		}
 
+		SysDictItem sysDictItem = SysDictItemConverter.INSTANCE.dtoToPo(sysDictItemDTO);
 		boolean result = sysDictItemService.save(sysDictItem);
 		if (result) {
 			eventPublisher.publishEvent(new DictChangeEvent(dictCode));
@@ -159,17 +161,19 @@ public class SysDictManager {
 
 	/**
 	 * 更新字典项
-	 * @param sysDictItem 字典项
+	 * @param sysDictItemDTO 字典项
 	 * @return 执行是否成功
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public boolean updateDictItemById(SysDictItem sysDictItem) {
+	public boolean updateDictItemById(SysDictItemDTO sysDictItemDTO) {
 		// 根据ID查询字典
-		String dictCode = sysDictItem.getDictCode();
+		String dictCode = sysDictItemDTO.getDictCode();
 		// 更新字典项Hash值
 		if (!sysDictService.updateHashCode(dictCode)) {
 			return false;
 		}
+
+		SysDictItem sysDictItem = SysDictItemConverter.INSTANCE.dtoToPo(sysDictItemDTO);
 		boolean result = sysDictItemService.updateById(sysDictItem);
 		if (result) {
 			eventPublisher.publishEvent(new DictChangeEvent(dictCode));
@@ -204,24 +208,29 @@ public class SysDictManager {
 	 * @return DictDataAndHashVO
 	 */
 	public List<DictDataVO> queryDictDataAndHashVO(String[] dictCodes) {
-		List<DictDataVO> list = new ArrayList<>();
 		// 查询对应hash值，以及字典项数据
 		List<SysDict> sysDictList = sysDictService.listByCodes(dictCodes);
-		if (CollectionUtil.isNotEmpty(sysDictList)) {
-			for (SysDict sysDict : sysDictList) {
-				List<SysDictItem> dictItems = sysDictItemService.listByDictCode(sysDict.getCode());
-				// 排序并转换为VO
-				List<DictItemVO> setDictItems = dictItems.stream().sorted(Comparator.comparingInt(SysDictItem::getSort))
-						.map(SysDictItemConverter.INSTANCE::poToItemVo).collect(Collectors.toList());
-				// 组装DataVO
-				DictDataVO dictDataVO = new DictDataVO();
-				dictDataVO.setValueType(sysDict.getValueType());
-				dictDataVO.setDictCode(sysDict.getCode());
-				dictDataVO.setHashCode(sysDict.getHashCode());
-				dictDataVO.setDictItems(setDictItems);
+		if (CollUtil.isEmpty(sysDictList)) {
+			return new ArrayList<>();
+		}
 
-				list.add(dictDataVO);
-			}
+		// 填充字典项
+		List<DictDataVO> list = new ArrayList<>();
+		for (SysDict sysDict : sysDictList) {
+			List<SysDictItem> dictItems = sysDictItemService.listByDictCode(sysDict.getCode());
+			// 排序并转换为VO
+			List<DictItemVO> setDictItems = dictItems.stream()
+				.sorted(Comparator.comparingInt(SysDictItem::getSort))
+				.map(SysDictItemConverter.INSTANCE::poToItemVo)
+				.collect(Collectors.toList());
+			// 组装DataVO
+			DictDataVO dictDataVO = new DictDataVO();
+			dictDataVO.setValueType(sysDict.getValueType());
+			dictDataVO.setDictCode(sysDict.getCode());
+			dictDataVO.setHashCode(sysDict.getHashCode());
+			dictDataVO.setDictItems(setDictItems);
+
+			list.add(dictDataVO);
 		}
 		return list;
 	}
@@ -232,10 +241,15 @@ public class SysDictManager {
 	 * @return List<String> 失效的字典标识集合
 	 */
 	public List<String> invalidDictHash(Map<String, String> dictHashCode) {
-		List<SysDict> byCode = sysDictService.listByCodes(dictHashCode.keySet().toArray(new String[] {}));
+		// @formatter:off
+		List<SysDict> byCode = sysDictService.listByCodes(dictHashCode.keySet()
+				.toArray(new String[] {}));
 		// 过滤相等Hash值的字典项，并返回需要修改的字典项的Code
-		return byCode.stream().filter(x -> !dictHashCode.get(x.getCode()).equals(x.getHashCode())).map(SysDict::getCode)
+		return byCode.stream()
+				.filter(x -> !dictHashCode.get(x.getCode()).equals(x.getHashCode()))
+				.map(SysDict::getCode)
 				.collect(Collectors.toList());
+		// @formatter:on
 	}
 
 }

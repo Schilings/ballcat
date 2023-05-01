@@ -1,9 +1,9 @@
 package com.hccake.ballcat.system.checker;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.hccake.ballcat.common.security.util.SecurityUtils;
 import com.hccake.ballcat.system.model.entity.SysUser;
-import com.hccake.ballcat.system.properties.UpmsProperties;
+import com.hccake.ballcat.system.properties.SystemProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +16,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AdminUserCheckerImpl implements AdminUserChecker {
 
-	private final UpmsProperties upmsProperties;
+	private final SystemProperties systemProperties;
 
 	@Override
 	public boolean isAdminUser(SysUser user) {
-		UpmsProperties.Administrator administrator = upmsProperties.getAdministrator();
+		SystemProperties.Administrator administrator = systemProperties.getAdministrator();
 		if (administrator.getUserId() == user.getUserId()) {
 			return true;
 		}
-		return StrUtil.isNotEmpty(administrator.getUsername())
+		return CharSequenceUtil.isNotEmpty(administrator.getUsername())
 				&& administrator.getUsername().equals(user.getUsername());
 	}
 

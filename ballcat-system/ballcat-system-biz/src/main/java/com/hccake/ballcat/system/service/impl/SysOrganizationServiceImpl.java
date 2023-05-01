@@ -1,8 +1,11 @@
 package com.hccake.ballcat.system.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.hccake.ballcat.common.core.constant.GlobalConstants;
@@ -48,13 +51,17 @@ public class SysOrganizationServiceImpl extends ExtendServiceImpl<SysOrganizatio
 	 */
 	@Override
 	public List<SysOrganizationTree> listTree(SysOrganizationQO sysOrganizationQO) {
-		List<SysOrganization> list = baseMapper.selectList(sysOrganizationQO);
-		// TODO 临时补丁，处理查询指定名称的组织时构建树失败的问题，考虑检索放在前端处理以便支持模糊检索
-		Integer treeRootId = GlobalConstants.TREE_ROOT_ID;
-		if (CollectionUtil.isNotEmpty(list) && list.size() == 1) {
-			treeRootId = list.get(0).getParentId();
+		List<SysOrganization> list = this.list();
+		List<SysOrganizationTree> tree = TreeUtils.buildTree(list, GlobalConstants.TREE_ROOT_ID,
+				SysOrganizationConverter.INSTANCE::poToTree);
+
+		// 如果有名称的查询条件，则进行剪枝操作
+		String name = sysOrganizationQO.getName();
+		if (CharSequenceUtil.isNotEmpty(name)) {
+			return TreeUtils.pruneTree(tree, node -> node.getName() != null && node.getName().contains(name));
 		}
-		return TreeUtils.buildTree(list, treeRootId, SysOrganizationConverter.INSTANCE::poToTree);
+
+		return tree;
 	}
 
 	/**
@@ -165,7 +172,7 @@ public class SysOrganizationServiceImpl extends ExtendServiceImpl<SysOrganizatio
 		// 组织机构一般数据量不多，一次性查询出来缓存到内存中，减少查询开销
 		List<SysOrganization> sysOrganizations = baseMapper.selectList(Wrappers.emptyWrapper());
 		Map<Integer, List<SysOrganization>> map = sysOrganizations.stream()
-				.collect(Collectors.groupingBy(SysOrganization::getParentId));
+			.collect(Collectors.groupingBy(SysOrganization::getParentId));
 		// 默认的父节点为根节点，
 		Integer parentId = GlobalConstants.TREE_ROOT_ID;
 		int depth = 1;
@@ -179,7 +186,7 @@ public class SysOrganizationServiceImpl extends ExtendServiceImpl<SysOrganizatio
 			String hierarchy) {
 		// 获取对应 parentId 下的所有子节点
 		List<SysOrganization> sysOrganizations = map.get(parentId);
-		if (CollectionUtil.isEmpty(sysOrganizations)) {
+		if (CollUtil.isEmpty(sysOrganizations)) {
 			return;
 		}
 		// 递归更新子节点数据

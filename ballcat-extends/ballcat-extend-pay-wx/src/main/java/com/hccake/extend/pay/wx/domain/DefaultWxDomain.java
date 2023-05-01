@@ -3,8 +3,11 @@ package com.hccake.extend.pay.wx.domain;
 import cn.hutool.http.HttpRequest;
 import com.hccake.extend.pay.wx.enums.RequestSuffix;
 import com.hccake.extend.pay.wx.utils.WxPayUtil;
-import java.util.Map;
 import lombok.SneakyThrows;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import java.util.Map;
 
 /**
  * 微信域名管理
@@ -28,8 +31,8 @@ public class DefaultWxDomain implements WxDomain {
 		return new DefaultWxDomain(sandbox);
 	}
 
+	@SneakyThrows({ ParserConfigurationException.class, TransformerException.class })
 	@Override
-	@SneakyThrows
 	public String sendRequest(Map<String, String> params, RequestSuffix rs) {
 		// 获取请求地址
 		String url = getUrl(rs.getSuffix());
@@ -40,7 +43,6 @@ public class DefaultWxDomain implements WxDomain {
 	/**
 	 * 根据微信的建议, 这里后续需要加上主备切换的功能
 	 * @return java.lang.String
-	 * @author lingting 2021-01-29 17:50
 	 */
 	public String getDomain() {
 		return MAIN1;

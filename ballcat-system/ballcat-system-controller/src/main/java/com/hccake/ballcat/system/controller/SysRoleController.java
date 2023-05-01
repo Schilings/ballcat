@@ -21,11 +21,20 @@ import com.hccake.ballcat.system.service.SysMenuService;
 import com.hccake.ballcat.system.service.SysRoleMenuService;
 import com.hccake.ballcat.system.service.SysRoleService;
 import com.hccake.ballcat.system.service.SysUserRoleService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -55,7 +64,7 @@ public class SysRoleController {
 	 */
 	@GetMapping("/page")
 	@PreAuthorize("@per.hasPermission('system:role:read')")
-	public R<PageResult<SysRolePageVO>> getRolePage(PageParam pageParam, SysRoleQO sysRoleQo) {
+	public R<PageResult<SysRolePageVO>> getRolePage(@Validated PageParam pageParam, SysRoleQO sysRoleQo) {
 		return R.ok(sysRoleService.queryPage(pageParam, sysRoleQo));
 	}
 
@@ -108,6 +117,9 @@ public class SysRoleController {
 	@Operation(summary = "通过id删除系统角色", description = "通过id删除系统角色")
 	public R<Boolean> removeById(@PathVariable("id") Integer id) {
 		SysRole oldRole = sysRoleService.getById(id);
+		if (oldRole == null) {
+			return R.ok();
+		}
 		if (SysRoleConst.Type.SYSTEM.getValue().equals(oldRole.getType())) {
 			return R.failed(BaseResultCode.LOGIC_CHECK_ERROR, "系统角色不允许被删除!");
 		}

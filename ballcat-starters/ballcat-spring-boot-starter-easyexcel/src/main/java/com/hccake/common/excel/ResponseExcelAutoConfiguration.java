@@ -4,13 +4,14 @@ import com.hccake.common.excel.aop.DynamicNameAspect;
 import com.hccake.common.excel.aop.RequestExcelArgumentResolver;
 import com.hccake.common.excel.aop.ResponseExcelReturnValueHandler;
 import com.hccake.common.excel.config.ExcelConfigProperties;
+import com.hccake.common.excel.head.EmptyHeadGenerator;
 import com.hccake.common.excel.processor.NameProcessor;
 import com.hccake.common.excel.processor.NameSpelExpressionProcessor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
@@ -26,9 +27,9 @@ import java.util.List;
  * <p>
  * 配置初始化
  */
+@AutoConfiguration
 @Import(ExcelHandlerConfiguration.class)
 @RequiredArgsConstructor
-@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ExcelConfigProperties.class)
 public class ResponseExcelAutoConfiguration {
 
@@ -58,12 +59,22 @@ public class ResponseExcelAutoConfiguration {
 	}
 
 	/**
+	 * 空的 Excel 头生成器
+	 * @return EmptyHeadGenerator
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public EmptyHeadGenerator emptyHeadGenerator() {
+		return new EmptyHeadGenerator();
+	}
+
+	/**
 	 * 追加 Excel返回值处理器 到 springmvc 中
 	 */
 	@PostConstruct
 	public void setReturnValueHandlers() {
 		List<HandlerMethodReturnValueHandler> returnValueHandlers = requestMappingHandlerAdapter
-				.getReturnValueHandlers();
+			.getReturnValueHandlers();
 
 		List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>();
 		newHandlers.add(responseExcelReturnValueHandler);

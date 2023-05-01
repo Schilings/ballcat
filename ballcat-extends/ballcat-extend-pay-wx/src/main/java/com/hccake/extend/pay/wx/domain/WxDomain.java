@@ -8,7 +8,10 @@ import com.hccake.extend.pay.wx.response.WxPayResponse;
 import com.hccake.extend.pay.wx.utils.WxPayUtil;
 import lombok.SneakyThrows;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,9 +39,8 @@ public interface WxDomain {
 	 * @param params 参数
 	 * @param rs 请求后缀
 	 * @return java.util.Map<java.lang.String,java.lang.String>
-	 * @author lingting 2021-02-01 10:58
 	 */
-	@SneakyThrows
+	@SneakyThrows({ ParserConfigurationException.class, IOException.class, SAXException.class })
 	default Map<String, String> request(Map<String, String> params, RequestSuffix rs) {
 		String res = "";
 		try {
@@ -57,9 +59,7 @@ public interface WxDomain {
 	 * @param params 参数
 	 * @param rs 前缀
 	 * @return java.lang.String
-	 * @author lingting 2021-02-25 14:09
 	 */
-	@SneakyThrows
 	String sendRequest(Map<String, String> params, RequestSuffix rs);
 
 	/**
@@ -67,7 +67,6 @@ public interface WxDomain {
 	 * 获取沙箱环境密钥
 	 * @param wxPay 支付信息
 	 * @return com.hccake.extend.pay.wx.response.WxPayResponse
-	 * @author lingting 2021-02-25 14:49
 	 */
 	default WxPayResponse sandbox(WxPay wxPay) {
 		HashMap<String, String> map = new HashMap<>();
